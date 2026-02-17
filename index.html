@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Happy Monthsary</title>
+<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    width: 100%;
+    min-height: 100vh;
+    background: #2a1f1a;
+  }
+
+  /* ═══════════════════════════════
+     SCREEN 1 — INTRO + PIN
+  ═══════════════════════════════ */
+  #intro-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(160deg, #1a0a08 0%, #2e1510 40%, #1a0a08 100%);
+    text-align: center;
+    padding: 40px 30px;
+    transition: opacity 0.8s ease, transform 0.8s ease;
+  }
+  #intro-screen.hide {
+    opacity: 0; transform: scale(1.04); pointer-events: none;
+  }
+  .intro-hearts {
+    font-size: 38px; margin-bottom: 30px;
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%,100% { transform: scale(1); }
+    50%     { transform: scale(1.12); }
+  }
+  .intro-hello {
+    font-family: 'Great Vibes', cursive;
+    font-size: clamp(52px, 12vw, 90px);
+    color: #f0c080; line-height: 1; margin-bottom: 10px;
+    animation: fadeUp 0.8s ease both;
+  }
+  .intro-mylove {
+    font-family: 'Great Vibes', cursive;
+    font-size: clamp(38px, 9vw, 68px);
+    color: #e8a060; line-height: 1.2; margin-bottom: 28px;
+    animation: fadeUp 0.8s ease 0.2s both;
+  }
+  .intro-msg {
+    font-family: 'Playfair Display', serif; font-style: italic;
+    font-size: clamp(16px, 3.5vw, 24px);
+    color: #c8956a; letter-spacing: 0.02em; line-height: 1.6;
+    margin-bottom: 50px;
+    animation: fadeUp 0.8s ease 0.4s both;
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .pin-section {
+    animation: fadeUp 0.8s ease 0.6s both;
+    width: 100%; max-width: 320px;
+  }
+  .pin-label {
+    font-size: clamp(12px, 2.5vw, 15px); color: #a07850;
+    letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 14px;
+  }
+  .pin-dots {
+    display: flex; justify-content: center; gap: 16px; margin-bottom: 24px;
+  }
+  .pin-dot {
+    width: 16px; height: 16px; border-radius: 50%;
+    border: 2px solid #a07850; background: transparent;
+    transition: background 0.2s, border-color 0.2s;
+  }
+  .pin-dot.filled { background: #f0c080; border-color: #f0c080; }
+  .pin-dot.error  { background: #e05050; border-color: #e05050; animation: shake 0.4s ease; }
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    20% { transform: translateX(-6px); }
+    40% { transform: translateX(6px); }
+    60% { transform: translateX(-4px); }
+    80% { transform: translateX(4px); }
+  }
+  .keypad {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 12px; max-width: 280px; margin: 0 auto;
+  }
+  .key {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(240,192,128,0.25);
+    border-radius: 50%;
+    width: clamp(60px, 14vw, 80px); height: clamp(60px, 14vw, 80px);
+    font-size: clamp(20px, 5vw, 28px);
+    color: #f0c080; font-family: 'Playfair Display', serif;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    margin: 0 auto; transition: background 0.15s, transform 0.1s;
+    user-select: none; -webkit-tap-highlight-color: transparent;
+  }
+  .key:active { background: rgba(240,192,128,0.2); transform: scale(0.92); }
+  .key.del    { font-size: clamp(16px, 4vw, 22px); color: #a07850; }
+  .key.empty  { visibility: hidden; pointer-events: none; }
+  .pin-error-msg {
+    margin-top: 18px; font-size: 13px; color: #e05050;
+    letter-spacing: 0.05em; min-height: 18px;
+  }
+  .petal {
+    position: fixed; opacity: 0;
+    animation: fall linear infinite; pointer-events: none; z-index: 99;
+  }
+  @keyframes fall {
+    0%   { opacity: 0; transform: translateY(-20px) rotate(0deg); }
+    10%  { opacity: 0.7; }
+    90%  { opacity: 0.4; }
+    100% { opacity: 0; transform: translateY(110vh) rotate(360deg); }
+  }
+
+  /* ═══════════════════════════════
+     SHARED — SCREEN WRAPPER
+  ═══════════════════════════════ */
+  .page-screen {
+    display: none; opacity: 0;
+    transition: opacity 0.8s ease;
+    width: 100%; min-height: 100vh;
+    justify-content: center; align-items: flex-start;
+    background: #2a1f1a;
+  }
+  .page-screen.show {
+    display: flex; opacity: 1;
+  }
+
+  /* ── Shared card shell — wider ── */
+  .card {
+    position: relative;
+    width: 100%; max-width: 520px;
+    min-height: 100vh;
+    overflow: hidden;
+    background-color: #ede5d8;
+    box-shadow: 0 0 60px rgba(0,0,0,0.5);
+  }
+  .bg {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%; object-fit: cover; z-index: 0;
+  }
+  .content {
+    position: relative; z-index: 2;
+    width: 100%; padding-bottom: 80px;
+  }
+
+  /* ── Flowers — screen 2 (collage) ── */
+  .flower-top-right {
+    position: absolute; top: -20px; right: -20px; width: 42%;
+    opacity: 0.95; transform: rotate(-12deg);
+    mix-blend-mode: multiply; z-index: 10; pointer-events: none;
+  }
+  .flower-bottom-left {
+    position: absolute; bottom: -10px; left: -15px; width: 40%;
+    opacity: 0.95; transform: rotate(8deg) scaleX(-1);
+    mix-blend-mode: multiply; z-index: 10; pointer-events: none;
+  }
+  .flower-right-mid {
+    position: absolute; right: 0; bottom: 260px; width: 22%;
+    opacity: 0.90; mix-blend-mode: multiply; z-index: 10; pointer-events: none;
+  }
+
+  /* ── Flowers — screen 3 (letter): pushed down so they don't cover text ── */
+  #letter-screen .flower-top-right {
+    top: auto;
+    bottom: 52%;
+    right: -20px;
+    width: 34%;
+    z-index: 1;
+  }
+  #letter-screen .flower-bottom-left {
+    bottom: -10px;
+    left: -15px;
+    width: 34%;
+    z-index: 1;
+  }
+  #letter-screen .flower-right-mid {
+    bottom: 200px;
+    width: 18%;
+    z-index: 1;
+  }
+
+  /* ═══════════════════════════════
+     SCREEN 2 — COLLAGE CARD
+  ═══════════════════════════════ */
+  .text-block { padding: 10% 8% 0; }
+  .subtitle {
+    font-family: 'Great Vibes', cursive;
+    font-size: clamp(32px, 9%, 52px);
+    color: #5a3a1a; line-height: 1.2; margin-bottom: 2px;
+  }
+  .title {
+    font-family: 'Great Vibes', cursive;
+    font-size: clamp(56px, 15%, 90px);
+    color: #5a3a1a; line-height: 1.05; margin-bottom: 4%;
+  }
+  .photos-area {
+    position: relative; width: 100%;
+    padding-bottom: 130%; margin-top: 2%;
+  }
+  .polaroid {
+    position: absolute; background: #f7f2ea;
+    padding: 2.5% 2.5% 9%;
+    box-shadow: 4px 6px 18px rgba(0,0,0,0.22), 1px 2px 6px rgba(0,0,0,0.1);
+  }
+  .polaroid .photo {
+    width: 100%; display: block; object-fit: cover; aspect-ratio: 4/3;
+  }
+  .p1 { top: 0; right: 3%; width: 62%; transform: rotate(2deg); z-index: 4; }
+  .p2 { top: 44%; left: 3%; width: 59%; transform: rotate(-3deg); z-index: 3; }
+  .p3 { top: 80%; right: 3%; width: 57%; transform: rotate(1.5deg); z-index: 5; }
+
+  /* ── Letter button at bottom of screen 2 ── */
+  .letter-btn-wrap {
+    position: relative; z-index: 6;
+    display: flex; justify-content: center;
+    padding: 32px 8% 50px;
+    margin-top: -20px;
+  }
+  .letter-btn {
+    display: flex; align-items: center; gap: 10px;
+    background: rgba(90,58,26,0.88);
+    border: 1.5px solid rgba(240,192,128,0.5);
+    border-radius: 50px;
+    padding: 14px 28px;
+    color: #f0d4a0;
+    font-family: 'Great Vibes', cursive;
+    font-size: clamp(20px, 5.5vw, 28px);
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    transition: transform 0.2s, background 0.2s;
+    -webkit-tap-highlight-color: transparent;
+    text-decoration: none;
+    text-align: center;
+  }
+  .letter-btn:active { transform: scale(0.96); background: rgba(90,58,26,1); }
+  .letter-btn .btn-icon { font-size: 22px; }
+
+  /* ═══════════════════════════════
+     SCREEN 3 — LOVE LETTER
+  ═══════════════════════════════ */
+  .letter-back-btn {
+    position: relative; z-index: 20;
+    display: flex; align-items: center; gap: 8px;
+    margin: 5% 6% 0;
+    color: #7a5230;
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(13px, 3.5vw, 16px);
+    font-weight: 600;
+    cursor: pointer; width: fit-content;
+    background: rgba(255,252,245,0.80);
+    padding: 7px 18px;
+    border-radius: 20px;
+    border: 1px solid rgba(160,120,80,0.3);
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+  .letter-back-btn:active { opacity: 0.6; }
+
+  .letter-wrap {
+    position: relative; z-index: 4;
+    padding: 5% 6% 70px;
+  }
+
+  /* Semi-opaque paper so bg texture shows softly but text is clear */
+  .letter-paper {
+    background: rgba(255, 252, 240, 0.92);
+    border-radius: 6px;
+    padding: 7% 8%;
+    box-shadow: 0 4px 24px rgba(90,58,26,0.15);
+    border: 1px solid rgba(200,160,100,0.25);
+  }
+
+  .letter-date {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: clamp(13px, 3vw, 15px);
+    color: #9a7250; margin-bottom: 18px;
+    text-align: right;
+  }
+
+  .letter-dear {
+    font-family: 'Great Vibes', cursive;
+    font-size: clamp(36px, 9vw, 50px);
+    color: #5a3a1a; line-height: 1.2; margin-bottom: 14px;
+  }
+
+  .letter-divider {
+    text-align: center; font-size: 18px;
+    margin: 16px 0; letter-spacing: 8px;
+    color: #b08860;
+  }
+
+  /* ✅ READABLE: upright, dark, well-spaced */
+  .letter-body {
+    font-family: 'Playfair Display', serif;
+    font-style: normal;
+    font-weight: 400;
+    font-size: clamp(15px, 4vw, 17px);
+    color: #2e1e0a;
+    line-height: 2;
+    letter-spacing: 0.01em;
+    margin-bottom: 20px;
+  }
+  .letter-body p { margin-bottom: 18px; }
+
+  .letter-closing {
+    font-family: 'Great Vibes', cursive;
+    font-size: clamp(30px, 8vw, 44px);
+    color: #5a3a1a; line-height: 1.5;
+    margin-top: 8px;
+  }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════
+     SCREEN 1: INTRO + PIN
+══════════════════════════ -->
+<div id="intro-screen">
+  <div class="intro-hearts">🌸 💕 🌸</div>
+  <div class="intro-hello">Hello,</div>
+  <div class="intro-mylove">My Love</div>
+  <div class="intro-msg">I have a surprise<br>for you.</div>
+
+  <div class="pin-section">
+    <div class="pin-label">Enter PIN to continue</div>
+    <div class="pin-dots">
+      <div class="pin-dot" id="d0"></div>
+      <div class="pin-dot" id="d1"></div>
+      <div class="pin-dot" id="d2"></div>
+      <div class="pin-dot" id="d3"></div>
+    </div>
+    <div class="keypad">
+      <div class="key" onclick="pressKey('1')">1</div>
+      <div class="key" onclick="pressKey('2')">2</div>
+      <div class="key" onclick="pressKey('3')">3</div>
+      <div class="key" onclick="pressKey('4')">4</div>
+      <div class="key" onclick="pressKey('5')">5</div>
+      <div class="key" onclick="pressKey('6')">6</div>
+      <div class="key" onclick="pressKey('7')">7</div>
+      <div class="key" onclick="pressKey('8')">8</div>
+      <div class="key" onclick="pressKey('9')">9</div>
+      <div class="key empty"></div>
+      <div class="key" onclick="pressKey('0')">0</div>
+      <div class="key del" onclick="pressKey('del')">⌫</div>
+    </div>
+    <div class="pin-error-msg" id="error-msg"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════
+     SCREEN 2: COLLAGE CARD
+══════════════════════════ -->
+<div id="card-screen" class="page-screen">
+  <div class="card">
+    <img class="bg" src="img/bg.png" alt="">
+    <img class="flower-top-right" src="img/main-flower.png" alt="">
+    <img class="flower-bottom-left" src="img/main-flower.png" alt="">
+    <img class="flower-right-mid" src="img/second-flower.png" alt="">
+
+    <div class="content">
+      <div class="text-block">
+        <div class="subtitle">Love</div>
+        <div class="title">Happy<br>Monthsary</div>
+      </div>
+      <div class="photos-area">
+        <div class="polaroid p1">
+          <img class="photo" src="img/US (8).jpg" alt="Photo 1">
+        </div>
+        <div class="polaroid p2">
+          <img class="photo" src="img/US (12).jpg" alt="Photo 2">
+        </div>
+        <div class="polaroid p3">
+          <img class="photo" src="img/US (15).jpg" alt="Photo 3">
+        </div>
+      </div>
+
+      <!-- Link to Screen 3 -->
+      <div class="letter-btn-wrap">
+        <div class="letter-btn" onclick="showLetter()">
+          <span class="btn-icon">💌</span>
+          Basaha akong love Letter love hehe
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════
+     SCREEN 3: LOVE LETTER
+══════════════════════════ -->
+<div id="letter-screen" class="page-screen">
+  <div class="card">
+    <img class="bg" src="img/bg.png" alt="">
+    <img class="flower-top-right" src="img/main-flower.png" alt="">
+    <img class="flower-bottom-left" src="img/main-flower.png" alt="">
+    <img class="flower-right-mid" src="img/second-flower.png" alt="">
+
+    <div class="content">
+
+      <!-- Back button -->
+      <div class="letter-back-btn" onclick="showCard()">
+        ← Back
+      </div>
+
+      <div class="letter-wrap">
+        <div class="letter-paper">
+
+          <div class="letter-date">February 2026 🌸</div>
+
+          <div class="letter-dear">To the love of my life,</div>
+
+          <div class="letter-divider">✦ ✦ ✦</div>
+
+          <div class="letter-body">
+            <p>
+              Love, hehe. Salamat kaayo sa pag-uban nako hangtud karon. 
+              You could have had anyone else aning kalibutana, but you chose me. 
+              Dako kaayo na nga butang para nako kay kabalo ko nga daghan mas labaw nako, 
+              pero ako gihapon ang imong gipili nga higugmaon. 
+            </p>
+            <p>
+              Tungod kay ako man imong gipili, andam ko makig-uban nimo hangtud sa hangtud. 
+              Wala ta kabalo og unsay mahitabo ugma hala, lain man paminawon, mura mag "the end" na ahahahaha! 
+              Pero bitaw, bisan unsa pay mahitabo, laban ra gihapon ta. 
+              Naa ra ko kanunay sa imong kiliran, sa imong atubangan, o sa imong likod... hala dogstyle naman ni ahahahaha! 
+              Bitaw seryoso na, naa ra ko kanunay andam mo damay kanimo sa tanan natong paga-agian. Basta laban lang ta duha ha, kaya nao ni! hehe
+            </p>
+            <p>
+              Salamat kaayo sa imong taas nga pasensya ug sa imong gugma kanako, hehe. 
+              Ug labaw sa tanan, salamat kaayo kay na akoa ka.
+            </p>
+          </div>
+
+          <div class="letter-divider">💕</div>
+
+          <div class="letter-closing">
+            I love you always,<br>
+            Nads 🌸
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  const CORRECT_PIN = '0718';
+  let entered = '';
+
+  const petals = ['🌸','🌺','💕','✨','🌷'];
+  for (let i = 0; i < 12; i++) {
+    const p = document.createElement('div');
+    p.classList.add('petal');
+    p.textContent = petals[i % petals.length];
+    p.style.left = Math.random() * 100 + 'vw';
+    p.style.animationDuration = (6 + Math.random() * 8) + 's';
+    p.style.animationDelay = (Math.random() * 8) + 's';
+    p.style.fontSize = (14 + Math.random() * 16) + 'px';
+    document.getElementById('intro-screen').appendChild(p);
+  }
+
+  function updateDots() {
+    for (let i = 0; i < 4; i++) {
+      const dot = document.getElementById('d' + i);
+      dot.classList.remove('filled', 'error');
+      if (i < entered.length) dot.classList.add('filled');
+    }
+  }
+
+  function pressKey(val) {
+    if (val === 'del') {
+      entered = entered.slice(0, -1);
+      document.getElementById('error-msg').textContent = '';
+      updateDots(); return;
+    }
+    if (entered.length >= 4) return;
+    entered += val;
+    updateDots();
+    if (entered.length === 4) setTimeout(checkPin, 200);
+  }
+
+  function switchScreen(hideId, showId) {
+    const hide = document.getElementById(hideId);
+    const show = document.getElementById(showId);
+    hide.classList.remove('show');
+    hide.style.display = 'none';
+    show.style.display = 'flex';
+    setTimeout(() => {
+      show.classList.add('show');
+      window.scrollTo(0, 0);
+    }, 30);
+  }
+
+  function showCard()   { switchScreen('letter-screen', 'card-screen'); }
+  function showLetter() { switchScreen('card-screen', 'letter-screen'); }
+
+  function showCardFirst() {
+    const card = document.getElementById('card-screen');
+    card.style.display = 'flex';
+    setTimeout(() => card.classList.add('show'), 50);
+  }
+
+  function checkPin() {
+    if (entered === CORRECT_PIN) {
+      const intro = document.getElementById('intro-screen');
+      intro.classList.add('hide');
+      showCardFirst();
+      setTimeout(() => intro.style.display = 'none', 900);
+    } else {
+      for (let i = 0; i < 4; i++) {
+        const dot = document.getElementById('d' + i);
+        dot.classList.remove('filled');
+        dot.classList.add('error');
+      }
+      document.getElementById('error-msg').textContent = 'Wrong PIN. Try again 💔';
+      setTimeout(() => {
+        entered = '';
+        updateDots();
+        document.getElementById('error-msg').textContent = '';
+      }, 900);
+    }
+  }
+</script>
+</body>
+</html>
